@@ -4,7 +4,7 @@
 
 Plugin Name: Flickr Post
 Version: 0.1
-Plugin URI: http://mcnicks.org/software/flickr-post/
+Plugin URI: http://mcnicks.org/plugins/flickr-post/
 Description: Automatically includes specially tagged Flickr photographs in WordPress posts. For a photo to appear, it must be tagged with the word 'wordpress' and with the post slug of the post.
 Author: David McNicol
 Author URI: http://mcnicks.org/
