@@ -110,6 +110,7 @@ function fp_add_photos ( $content ) {
     $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$title.'">';
     $fp_photos .= '<img src="'.$thumbnail.'" alt="'.$title.'"/>';
     $fp_photos .= '</a>';
+    $fp_photos .= "\n";
   }
 
   $fp_photos .= '</div>';
@@ -118,6 +119,57 @@ function fp_add_photos ( $content ) {
 }
 
 
+
+/* fp_get_recent
+    - $number is the number of recent photos to return
+    - returns HTML containing thumbnail images of recent photos
+ */
+
+function fp_get_recent ( $number = 3 ) {
+
+  // Get the user ID.
+
+  $user_id = fp_get_user_id();
+
+  // Make the REST request for recent photos.
+
+  $response = fp_rest_request( "flickr.people.getPublicPhotos",
+   "user_id=$user_id&per_page=$number", $user_id, 300 );
+
+  if ( ! $response ) return;
+
+  $fp_photos = '<div class="flickr-post">';
+ 
+  foreach ( $response as $order => $tag ) {
+    if ( $tag['tag'] == 'photo' ) {
+
+      $ph_server = $tag['attributes']['server'];
+      $ph_id = $tag['attributes']['id'];
+      $ph_secret = $tag['attributes']['secret'];
+      $ph_ispublic = $tag['attributes']['ispublic'];
+      $ph_server = $tag['attributes']['server'];
+      $ph_title = $tag['attributes']['title'];
+    
+      if ( $ph_ispublic ) {
+
+        $uri = "http://photos" . $ph_server . ".flickr.com/"
+         . $ph_id . "_" . $ph_secret;
+      
+        $thumbnail = fp_url_cache( $uri.'_s.jpg' );
+        $image = $uri.'_o.jpg';
+      
+        $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$ph_title.'">';
+        $fp_photos .= '<img src="'.$thumbnail.'" alt="'.$ph_title.'"/>';
+        $fp_photos .= '</a>';
+        $fp_photos .= "\n";
+      }
+    }
+  }
+
+  $fp_photos .= '</div>';
+
+  return $fp_photos;
+}
 
 /* fp_url_cache
     - $url a remote URL to cache locally
@@ -195,6 +247,8 @@ function fp_get_photos ( $user_id, $slug ) {
   $titles = array();
   $urls = array();
 
+  if ( ! $response ) return;
+ 
   foreach ( $response as $order => $tag ) {
     if ( $tag['tag'] == 'photo' ) {
 
@@ -226,6 +280,7 @@ function fp_get_photos ( $user_id, $slug ) {
     - $method is the REST method which should be called
     - $args specified the arguments that should be sent
     - (optional) $slug a slug used to cache results locally
+    - (optional) $timeout an optional timeout period for the cache
     - returns an XML document containing the response
 
    This function issues a REST request based on the specified method
@@ -234,7 +289,7 @@ function fp_get_photos ( $user_id, $slug ) {
    returns it. If a cache slug is given, the last request matching
    the method and slug will be returned if it is fresh enough. */
 
-function fp_rest_request ( $method = "", $args = "", $slug = "" ) {
+function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" ) {
 
   // Make sure we have the correct arguments.
 
@@ -243,7 +298,7 @@ function fp_rest_request ( $method = "", $args = "", $slug = "" ) {
   // Check if we should do caching.
 
   if ( $slug ) {
-    $response = fp_get_cached_response( $method, $slug );
+    $response = fp_get_cached_response( $method, $slug, $timeout );
   }
 
   // If we did not get a cached response, issue the REST request.
@@ -280,17 +335,21 @@ function fp_rest_request ( $method = "", $args = "", $slug = "" ) {
 /* fp_get_cached_response
     - $method is the REST method to be cached
     - $slug is used to make the cached response more unique
+    - (optional) $timeout is a specific timeout value to use
 
    This function uses $method and $cache to make up a unique filename
    which is used to store REST responses. If the file associated with
    $request and $slug exists, its contents are returned. If the file
    is stale, then nothing is returned, which should prompt a refresh. */
 
-function fp_get_cached_response( $method, $slug ) {
+function fp_get_cached_response( $method, $slug, $timeout = "" ) {
 
   // Return if the method and slug are not specified.
 
   if ( ! $method || ! $slug ) return;
+
+  if ( ! $timeout ) $timeout = FP_CACHE_TIMEOUT;
+
   // Work out the file name that the response should be cached in.
 
   $filename = FP_CACHE_DIR."$method--$slug";
@@ -301,7 +360,7 @@ function fp_get_cached_response( $method, $slug ) {
 
   // Return if the file is stale.
 
-  if ( ( @filemtime( $filename ) + FP_CACHE_TIMEOUT ) < ( time() ) ) return;
+  if ( ( @filemtime( $filename ) + $timeout ) < ( time() ) ) return;
 
   // Otherwise, open it and return the contents.
 
