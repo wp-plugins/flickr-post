@@ -415,10 +415,16 @@ function fp_make_xml_tree( $xml ) {
 */
 
 function get_the_slug () {
-  global $id, $wpdb;
+  global $wp_version, $id, $wpdb, $tableposts;
 
-  if ( $id > 0 )
-    return $wpdb->get_var("SELECT post_name FROM $wpdb->posts WHERE ID = $id");
+  if ( $id > 0 ) {
+
+    if ( preg_match( '/^1\.2/', $wp_version ) ) {
+      return $wpdb->get_var("SELECT post_name FROM $tableposts WHERE ID = $id");
+    } else {
+      return $wpdb->get_var("SELECT post_name FROM $wpdb->posts WHERE ID = $id");
+    }
+  }
 }
 
 ?>
