@@ -110,7 +110,6 @@ function fp_add_photos ( $content ) {
     $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$title.'">';
     $fp_photos .= '<img src="'.$thumbnail.'" alt="'.$title.'"/>';
     $fp_photos .= '</a>';
-    $fp_photos .= "\n";
   }
 
   $fp_photos .= '</div>';
@@ -325,6 +324,14 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
     }
   }
 
+  // If we do not have a response here, there must have been an
+  // error. As a last resort, try to get whatever is in the cache,
+  // regardless of how old it is.
+
+  if ( ! $response && $slug ) {
+    $response = fp_get_cached_response( $method, $slug, 1 );
+  }
+
   // Return the response in an XML tree.
 
   return fp_make_xml_tree( $response );
@@ -336,17 +343,21 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
     - $method is the REST method to be cached
     - $slug is used to make the cached response more unique
     - (optional) $timeout is a specific timeout value to use
+    - (optional) $any will return any available cached
+      response, regardless of how stale it is.
 
    This function uses $method and $cache to make up a unique filename
    which is used to store REST responses. If the file associated with
    $request and $slug exists, its contents are returned. If the file
    is stale, then nothing is returned, which should prompt a refresh. */
 
-function fp_get_cached_response( $method, $slug, $timeout = "" ) {
+function fp_get_cached_response( $method, $slug, $timeout = 0, $any = 0 ) {
 
   // Return if the method and slug are not specified.
 
   if ( ! $method || ! $slug ) return;
+
+  // Set the timeout to the default value if none has been specified.
 
   if ( ! $timeout ) $timeout = FP_CACHE_TIMEOUT;
 
@@ -358,9 +369,12 @@ function fp_get_cached_response( $method, $slug, $timeout = "" ) {
 
   if ( ! @file_exists( $filename ) ) return;
 
-  // Return if the file is stale.
+  // Check whether the cached response is stale, unless we have been
+  // told to return anything that is available.
 
-  if ( ( @filemtime( $filename ) + $timeout ) < ( time() ) ) return;
+  if ( ! $any )
+    if ( ( @filemtime( $filename ) + $timeout ) < ( time() ) )
+      return;
 
   // Otherwise, open it and return the contents.
 
