@@ -104,8 +104,11 @@ function fp_add_photos ( $content ) {
 
     $uri = $uris[$id];
     $title = $titles[$id];
-    $fp_photos .= '<a href="'.$uri.'_o.jpg" rel="bookmark" title="'.$title.'">';
-    $fp_photos .= '<img src="'.$uri.'_s.jpg" alt="'.$title.'"/>';
+    $thumbnail = fp_url_cache( $uri.'_s.jpg' );
+    $image = $uri.'_o.jpg';
+
+    $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$title.'">';
+    $fp_photos .= '<img src="'.$thumbnail.'" alt="'.$title.'"/>';
     $fp_photos .= '</a>';
   }
 
@@ -115,6 +118,23 @@ function fp_add_photos ( $content ) {
 }
 
 
+
+/* fp_url_cache
+    - $url a remote URL to cache locally
+    - returns a locally cached URL or $url
+  
+   This function checks to see whether my url_cache function has been
+   defined. If it has, then it will attempt to cache the given URL and
+   a local URL pointing to a cached copy of the remote file. If not,
+   the remote URL is returned unchanged. */
+
+function fp_url_cache ( $url = "" ) {
+
+  if ( function_exists( 'url_cache' ) )
+    return url_cache( $url );
+  else
+    return $url;
+}
 
 /* fp_get_user_id
     - returns the user ID associated with the predefined username
