@@ -205,7 +205,7 @@ function fp_get_user_id () {
 
   // See if the value has been cached.
 
-  if ( function_exists( 'uc_get_cached_value' ) && $user_id = uc_get_cached_value( "user_id", FP_CACHE_TIMEOUT ) ) {
+  if ( function_exists( 'uc_get_value' ) && $user_id = uc_get_value( "user_id", FP_CACHE_TIMEOUT ) ) {
 	  return $user_id;
 	}
     
@@ -317,8 +317,8 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
 
   // Check if we should do caching.
 
-  if ( $slug && function_exists( 'uc_get_cached_response' ) ) {
-    $response = uc_get_cached_response( $method, $slug, $timeout );
+  if ( $slug && function_exists( 'uc_get_rest_response' ) ) {
+    $response = uc_get_rest_response( $method, $slug, $timeout );
   }
 
   // If we did not get a cached response, issue the REST request.
@@ -341,8 +341,8 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
 
       // Cache the new response if we have a slug.
 
-      if ( $slug && function_exists( 'uc_cache_response' ) ) {
-				uc_cache_response( $method, $slug, $response );
+      if ( $slug && function_exists( 'uc_cache_rest_response' ) ) {
+				uc_cache_rest_response( $method, $slug, $response );
 			}
     }
   }
@@ -351,8 +351,8 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
   // error. As a last resort, try to get whatever is in the cache,
   // regardless of how old it is.
 
-  if ( ! $response && $slug && function_exists( 'uc_get_cached_response' ) ) {
-    $response = uc_get_cached_response( $method, $slug, 1 );
+  if ( ! $response && $slug && function_exists( 'uc_get_rest_response' ) ) {
+    $response = uc_get_rest_response( $method, $slug, 1 );
   }
 
   // Return the response in an XML tree.
