@@ -6,11 +6,6 @@
 
 define( 'FP_USERNAME', 'username' );
 
-/* A directory where the plugin can cache results - must be writable
-   by the web server process. */
-
-define( 'FP_CACHE_DIR', '/path/to/wordpress/wp-content/cache/flickr-post');
-
 /* This specifies how long cached results should be kept before they
    are considered to be stale. This is an important value to consider.
    If you set it too low, then the plugin will make a lot of direct
