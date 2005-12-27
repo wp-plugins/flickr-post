@@ -153,7 +153,7 @@ function fp_get_recent ( $number = 3 ) {
     
       if ( $ph_ispublic ) {
 
-        $uri = "http://photos" . $ph_server . ".flickr.com/"
+        $uri = "http://static.flickr.com/$ph_server/"
          . $ph_id . "_" . $ph_secret;
       
         $thumbnail = fp_url_cache( $uri.'_s.jpg' );
@@ -275,7 +275,7 @@ function fp_get_photos ( $user_id, $slug ) {
 
         array_unshift( $ids, $ph_id );
 
-        $uri = "http://static.flickr.com/$ph_server/" . $ph_id . "_" . $ph_secret;
+        $urls[$ph_id] = "http://static.flickr.com/$ph_server/" . $ph_id . "_" . $ph_secret;
 
         $titles[$ph_id] = $ph_title;
       }
