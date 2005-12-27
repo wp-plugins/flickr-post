@@ -135,8 +135,7 @@ function fp_get_recent ( $number = 3 ) {
 
   // Make the REST request for recent photos.
 
-  $response = fp_rest_request( "flickr.people.getPublicPhotos",
-   "user_id=$user_id&per_page=$number", $user_id, 300 );
+  $response = fp_rest_request( "flickr.people.getPublicPhotos", "user_id=$user_id&per_page=$number", $user_id );
 
   if ( ! $response ) return;
 
@@ -194,6 +193,8 @@ function fp_url_cache ( $url = "" ) {
     return $url;
 }
 
+
+
 /* fp_get_user_id
     - returns the user ID associated with the predefined username
 
@@ -204,7 +205,9 @@ function fp_get_user_id () {
 
   // See if the value has been cached.
 
-  if ( $user_id = fp_get_cached_value( "user_id" ) ) return $user_id;
+  if ( function_exists( 'uc_get_cached_value' ) && $user_id = uc_get_cached_value( "user_id", FP_CACHE_TIMEOUT ) ) {
+	  return $user_id;
+	}
     
   // Otherwise, make a REST request for the user ID.
 
@@ -215,11 +218,12 @@ function fp_get_user_id () {
 
   $user_id = $response['1']['attributes']['id'];
 
-  if ( $user_id ) {
+  if ( $user_id && function_exists( 'uc_cache_value' ) ) {
 
-    fp_cache_value( "user_id", $user_id );
-    return $user_id;
+    uc_cache_value( "user_id", $user_id );
   }
+
+  return $user_id;
 }
 
 
@@ -305,10 +309,16 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
 
   if ( ! $method || ! $args ) return;
 
+	// Set the timeout if necessary.
+
+	if ( ! timeout ) {
+		$timeout = FP_CACHE_TIMEOUT;
+	}
+
   // Check if we should do caching.
 
-  if ( $slug ) {
-    $response = fp_get_cached_response( $method, $slug, $timeout );
+  if ( $slug && function_exists( 'uc_get_cached_response' ) ) {
+    $response = uc_get_cached_response( $method, $slug, $timeout );
   }
 
   // If we did not get a cached response, issue the REST request.
@@ -331,7 +341,9 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
 
       // Cache the new response if we have a slug.
 
-      if ( $slug ) fp_cache_response( $method, $slug, $response );
+      if ( $slug && function_exists( 'uc_cache_response' ) ) {
+				uc_cache_response( $method, $slug, $response );
+			}
     }
   }
 
@@ -339,140 +351,13 @@ function fp_rest_request ( $method = "", $args = "", $slug = "", $timeout = "" )
   // error. As a last resort, try to get whatever is in the cache,
   // regardless of how old it is.
 
-  if ( ! $response && $slug ) {
-    $response = fp_get_cached_response( $method, $slug, 1 );
+  if ( ! $response && $slug && function_exists( 'uc_get_cached_response' ) ) {
+    $response = uc_get_cached_response( $method, $slug, 1 );
   }
 
   // Return the response in an XML tree.
 
   return fp_make_xml_tree( $response );
-}
-
-
-
-/* 
- * fp_get_cached_response
- *  - $method is the REST method to be cached
- *  - $slug is used to make the cached response more unique
- *  - (optional) $timeout is a specific timeout value to use
- *  - (optional) $any will return any available cached
- *    response, regardless of how stale it is.
- *
- * This function uses $method and $cache to make up a unique filename
- * which is used to store REST responses. If the file associated with
- * $request and $slug exists, its contents are returned. If the file
- * is stale, then nothing is returned, which should prompt a refresh.
- */
-
-function fp_get_cached_response( $method, $slug, $timeout = 0, $any = 0 ) {
-
-  // Return if the method and slug are not specified.
-
-  if ( ! $method || ! $slug ) return;
-
-  // Set the timeout to the default value if none has been specified.
-
-  if ( ! $timeout ) $timeout = FP_CACHE_TIMEOUT;
-
-  // Work out the file name that the response should be cached in.
-
-  $filename = FP_CACHE_DIR."$method--$slug";
-
-  // Return if the file does not exist.
-
-  if ( ! @file_exists( $filename ) ) return;
-
-  // Check whether the cached response is stale, unless we have been
-  // told to return anything that is available.
-
-  if ( ! $any )
-    if ( ( @filemtime( $filename ) + $timeout ) < ( time() ) )
-      return;
-
-  // Otherwise, open it and return the contents.
-
-  $handle = @fopen( $filename, "r" );
-
-  if ( $handle ) {
-
-    $cached_response = "";
-
-    while ( $part = @fread( $handle, 8192 ) ) {
-      $cached_response .= $part;
-    }
-
-    @fclose( $handle );
-
-    return $cached_response;
-  }
-}
-
-
-
-/*
- * fp_cache_response
- *  - $method is the REST method to be cached
- *  - $slug is used to make the cached response more unique
- *  - $response is the actual response that we should cache
- *
- * This function uses $method and $cache to make up a unique filename
- * which is used to store REST responses. When called, the function
- * writes the given response to that filename.
- */
-
-function fp_cache_response( $method, $slug, $response ) {
-
-  // Return if the arguments are not specified.
-
-  if ( ! $method || ! $slug  || ! $response ) return;
-
-  // Work out the file name that the response should be cached in.
-
-  $filename = FP_CACHE_DIR."$method--$slug";
-
-  // Open it for writing and dump the response in.
-
-  $handle = @fopen( $filename, "w+" );
-
-  if ( $handle ) {
-
-    @fwrite( $handle, $response );
-    @fclose( $handle );
-  }
-
-  // That almost seemed too simple.
-}
-
-
-
-/*
- * fp_cache_value
- *  - $name the name of the value to cache
- *  - $value the value itself
- *
- * This function uses the standard caching functions above to cache
- * name/value pairs. At the moment this is a bit of a fudge, making
- * use of the special method, "value". */
-
-function fp_cache_value( $name, $value ) {
-  return fp_cache_response( "value", $name, $value );
-}
-
-
-
-/*
- * fp_get_cached_value
- *  - $name the name of the value to cache
- *  - returns the cached value associated with $name
- *
- * This function uses the standard caching functions above to return
- * a previously cached value associated with a name/value pair. At the
- * moment this is a bit of a fudge, making use of the special method,
- * "value".
- */
-
-function fp_get_cached_value( $name ) {
-  return fp_get_cached_response( "value", $name );
 }
 
 
