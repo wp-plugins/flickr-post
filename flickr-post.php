@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 /* Load the config file. */
 
-include_once( ABSPATH . "wp-content/plugins/flickr-post.conf" );
+include_once( "flickr-post.conf" );
 
 
 
