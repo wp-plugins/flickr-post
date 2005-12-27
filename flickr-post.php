@@ -275,8 +275,7 @@ function fp_get_photos ( $user_id, $slug ) {
 
         array_unshift( $ids, $ph_id );
 
-        $urls[$ph_id] = "http://photos" . $ph_server . ".flickr.com/"
-         . $ph_id . "_" . $ph_secret;
+        $uri = "http://static.flickr.com/$ph_server/" . $ph_id . "_" . $ph_secret;
 
         $titles[$ph_id] = $ph_title;
       }
