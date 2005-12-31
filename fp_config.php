@@ -57,11 +57,14 @@ function fp_configuration () {
 function fp_load_settings () {
 
   $_REQUEST['flickr_username'] = get_option( "fp_flickr_username" );
+  $_REQUEST['timeout'] = get_option( "fp_timeout" );
+  $_REQUEST['recent'] = get_option( "fp_recent" );
 
-  if ( $timeout = get_option( "fp_timeout" ) )
-    $_REQUEST['timeout'] = $timeout;
-  else
+  if ( ! $_REQUEST['timeout'] )
     $_REQUEST['timeout'] = 3600;
+
+  if ( ! $_REQUEST['recent'] )
+    $_REQUEST['recent'] = 10;
 }
 
 
@@ -77,6 +80,7 @@ function fp_save_settings () {
 
   update_option( "fp_flickr_username", $_REQUEST['flickr_username'] );
   update_option( "fp_timeout", $_REQUEST['timeout'] );
+  update_option( "fp_recent", $_REQUEST['recent'] );
 }
 
 

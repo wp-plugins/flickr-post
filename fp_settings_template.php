@@ -16,6 +16,10 @@
       <th scope="row">Cache timeout (in seconds):</th>
       <td><input type="text" name="timeout" value="<?php echo $_REQUEST['timeout']; ?>" style="width: 95%" /></td>
     </tr>
+    <tr>
+      <th scope="row">Number of recent photos:</th>
+      <td><input type="text" name="recent" value="<?php echo $_REQUEST['recent']; ?>" style="width: 95%" /></td>
+    </tr>
   </table>
 
   <p class="submit">

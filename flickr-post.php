@@ -112,15 +112,19 @@ function fp_add_photos ( $content ) {
 
 /*
  * get_recent_flickr_photos
- *  - $number is the number of recent photos to return
- *  - returns HTML containing thumbnail images of recent photos
+ *
+ * Prints HTML containing thumbnail images of recent photos.
  */
 
-function get_recent_flickr_photos ( $number = 3 ) {
+function get_recent_flickr_photos () {
 
   // Get the user ID.
 
   $user_id = fp_get_user_id();
+
+  // Get the number of recent photos to display from WordPress options.
+
+  $number = get_option( 'fp_recent' );
 
   // Make the REST request for recent photos.
 
