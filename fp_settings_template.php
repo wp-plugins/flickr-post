@@ -20,6 +20,10 @@
       <th scope="row">Number of recent photos:</th>
       <td><input type="text" name="recent" value="<?php echo $_REQUEST['recent']; ?>" style="width: 95%" /></td>
     </tr>
+    <tr>
+      <th scope="row">CSS class for images:</th>
+      <td><input type="text" name="image_class" value="<?php echo $_REQUEST['image_class']; ?>" style="width: 95%" /></td>
+    </tr>
   </table>
 
   <p class="submit">

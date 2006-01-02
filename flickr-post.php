@@ -3,7 +3,7 @@
 /*
 
 Plugin Name: Flickr Post
-Version: 1.3
+Version: 1.4
 Plugin URI: http://mcnicks.org/wordpress/flickr-post/
 Description: Automatically includes specially tagged Flickr photographs in WordPress posts. For a photo to appear, it must be tagged with the word 'wordpress' and with the post slug of the post. Inspired by Ramon Darrow's flickr-gallery plugin.
 Author: David McNicol
@@ -89,7 +89,7 @@ function fp_add_photos ( $content ) {
 
   // Construct the HTML.
 
-  $fp_photos = '<div class="flickr-post">';
+  $fp_photos = '<div class="flickr-postt">';
 
   foreach ( $ids as $id ) {
 
@@ -99,7 +99,7 @@ function fp_add_photos ( $content ) {
     $image = $uri.'_o.jpg';
 
     $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$title.'">';
-    $fp_photos .= '<img src="'.$thumbnail.'" alt="'.$title.'"/>';
+    $fp_photos .= '<img class="shadow" src="'.$thumbnail.'" alt="'.$title.'"/>';
     $fp_photos .= '</a>';
   }
 
@@ -133,6 +133,8 @@ function get_recent_flickr_photos () {
 
   if ( ! $response ) return;
 
+  $class = get_option( 'fp_image_class' );
+
   echo "<div class=\"flickr-post\">\n";
  
   foreach ( $response as $order => $tag ) {
@@ -155,7 +157,12 @@ function get_recent_flickr_photos () {
       
         echo "<a href=\"$image\"";
         echo " rel=\"bookmark\" title=\"$ph_title\">";
-        echo "<img src=\"$thumbnail\" alt=\"$ph_title\"/>";
+        echo "<img";
+
+        if ( $class )
+          echo " class=\"$class\"";
+
+        echo " src=\"$thumbnail\" alt=\"$ph_title\"/>";
         echo "</a>\n";
       }
     }
