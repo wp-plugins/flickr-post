@@ -89,7 +89,9 @@ function fp_add_photos ( $content ) {
 
   // Construct the HTML.
 
-  $fp_photos = '<div class="flickr-postt">';
+  $fp_photos = '<div class="flickr-post">';
+
+  $class = get_option( 'fp_image_class' );
 
   foreach ( $ids as $id ) {
 
@@ -99,7 +101,14 @@ function fp_add_photos ( $content ) {
     $image = $uri.'_o.jpg';
 
     $fp_photos .= '<a href="'.$image.'" rel="bookmark" title="'.$title.'">';
-    $fp_photos .= '<img class="shadow" src="'.$thumbnail.'" alt="'.$title.'"/>';
+    $fp_photos .= "<img";
+
+    if ( $class )
+      $fp_photos .= " class=\"$class\"";
+
+    $fp_photos .= ' src="'.$thumbnail.'" alt="'.$title.'"/>';
+
+
     $fp_photos .= '</a>';
   }
 
